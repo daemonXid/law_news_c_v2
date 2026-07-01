@@ -21,11 +21,13 @@
 | **Docker Desktop** | `docker --version` | [docker.com](https://www.docker.com/products/docker-desktop/) (PostgreSQL 실행용) |
 | **Git** | `git --version` | [git-scm.com](https://git-scm.com/) |
 
+> 현재 `Justfile` 명령어는 macOS/Linux 셸 기준입니다. Windows에서는 WSL2 또는 Git Bash 사용을 권장합니다.
+
 ---
 
 ### STEP 1. 프로젝트 다운로드
 
-```powershell
+```bash
 git clone https://github.com/ken-do-it/law_news_c_v2.git
 cd law_news_c_v2
 ```
@@ -34,7 +36,7 @@ cd law_news_c_v2
 
 ### STEP 2. 도구 설치
 
-```powershell
+```bash
 # Python 패키지 매니저 (uv)
 pip install uv
 
@@ -42,14 +44,14 @@ pip install uv
 npm install -g bun
 
 # 명령어 도구 (just)
-winget install Casey.Just
+brew install just
 ```
 
-> 설치 후 터미널을 **한 번 닫았다가 다시 열어야** 명령어가 인식됩니다.
+> macOS가 아니라면 [just 설치 문서](https://github.com/casey/just#installation)에서 OS에 맞는 설치 방법을 확인하세요.
 
 설치 확인:
 
-```powershell
+```bash
 uv --version    # 예: uv 0.6.x
 bun --version   # 예: 1.x.x
 just --version  # 예: just 1.x.x
@@ -60,7 +62,13 @@ docker --version  # 예: Docker version 27.x.x
 
 ### STEP 3. 환경변수 설정 (API 키 입력)
 
-프로젝트 폴더에 `.env` 파일을 열고 아래 항목을 입력하세요:
+프로젝트 폴더에서 `.env` 파일을 만든 뒤 API 키를 입력하세요. `just setup`을 실행하면 `.env.example`을 복사하고 `DATABASE_URL` 기본값을 자동으로 추가합니다. 먼저 직접 만들고 싶다면 아래 명령어를 실행하세요:
+
+```bash
+just env
+```
+
+`.env` 파일에서 아래 항목을 실제 값으로 바꿉니다:
 
 ```
 # 네이버 뉴스 검색 API (필수 — 뉴스 수집용)
@@ -82,13 +90,14 @@ GEMINI_API_KEY=발급받은_키
 
 ### STEP 4. 전체 설치 + 초기화 (한 번만)
 
-```powershell
+```bash
 just setup
 ```
 
 이 명령어 하나로 아래가 **자동으로** 실행됩니다:
 
 ```
+✅ .env 생성 및 DATABASE_URL 기본값 설정
 ✅ PostgreSQL Docker 컨테이너 시작 (law-news-postgres)
 ✅ Python 패키지 설치 (Django, AI 라이브러리 등)
 ✅ Node.js 패키지 설치 (React, Tailwind 등)
@@ -100,7 +109,7 @@ just setup
 
 ### STEP 5. 관리자 계정 만들기
 
-```powershell
+```bash
 just superuser
 ```
 
@@ -108,11 +117,11 @@ just superuser
 
 ### STEP 6. 서버 실행
 
-```powershell
+```bash
 just dev
 ```
 
-새 창이 2개 열리며 아래 주소로 접속 가능합니다:
+한 터미널에서 백엔드와 프론트엔드가 함께 실행되며 아래 주소로 접속 가능합니다:
 
 | 서비스 | 주소 | 설명 |
 |--------|------|------|
@@ -126,7 +135,7 @@ just dev
 
 ### STEP 7. 수동 수집 + AI 분석 (초기 데이터 구축 시)
 
-```powershell
+```bash
 # 수집과 분석을 한 번에
 just pipeline
 
@@ -160,13 +169,17 @@ just analyze --limit 100  # 100건만 분석
 | `just dev` | 백엔드 + 프론트엔드 동시 실행 |
 | `just backend` | 백엔드만 실행 |
 | `just frontend` | 프론트엔드만 실행 |
+| `just kill-port` | 기본 포트(8000, 5173) 점유 프로세스 종료 |
+| `just kill-port 8000 5173` | 지정한 포트 점유 프로세스 종료 |
 
 ### PostgreSQL (Docker)
 
 | 명령어 | 설명 |
 |--------|------|
 | `just pg-start` | PostgreSQL 컨테이너 시작 |
+| `just up` | `just pg-start` 별칭 |
 | `just pg-stop` | PostgreSQL 컨테이너 중지 |
+| `just down` | `just pg-stop` 별칭 |
 | `just pg-status` | 컨테이너 상태 확인 |
 | `just pg-shell` | psql 접속 |
 
@@ -196,6 +209,7 @@ just analyze --limit 100  # 100건만 분석
 | 명령어 | 설명 |
 |--------|------|
 | `just setup` | 전체 초기 셋업 (PG + 의존성 + DB + 시드) |
+| `just env` | `.env` 생성 및 `DATABASE_URL` 기본값 추가 |
 | `just install` | 의존성 설치 (백엔드 + 프론트엔드) |
 | `just admin` | Django 관리자 페이지 열기 |
 | `just docs` | API 문서 (Swagger) 열기 |
@@ -223,12 +237,12 @@ just analyze --limit 100  # 100건만 분석
 
 | 증상 | 해결 |
 |------|------|
-| `just` 명령어 인식 안 됨 | `winget install Casey.Just` 후 터미널 재시작 |
+| `just` 명령어 인식 안 됨 | macOS: `brew install just` / 기타 OS: just 설치 문서 확인 |
 | 서버가 안 켜짐 | `just pg-start` → `just install` → `just migrate` |
 | PostgreSQL 연결 실패 | Docker Desktop 실행 확인 → `just pg-start` |
 | 크롤링 0건 수집 | `.env`의 `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET` 확인 |
 | AI 분석 실패 | `.env`의 `GEMINI_API_KEY` 확인 후 `just analyze` 재실행 |
-| 포트 충돌 | Vite가 자동으로 다음 포트 선택 — 터미널에 표시된 URL 확인 |
+| 포트 충돌 | `just kill-port` 실행 후 `just dev` 재시도 |
 
 ---
 
@@ -497,7 +511,18 @@ pip install uv
 uv --version
 ```
 
-### 5-4. API 키 준비
+### 5-4. bun / just 설치
+
+```bash
+npm install -g bun
+brew install just
+bun --version
+just --version
+```
+
+> macOS가 아니라면 OS에 맞는 `just` 설치 방법을 사용하세요. 이 프로젝트의 `Justfile`은 macOS/Linux 셸 기준입니다.
+
+### 5-5. API 키 준비
 
 | API | 용도 | 발급처 |
 |-----|------|--------|
@@ -518,7 +543,11 @@ cd law_news_c_v2
 
 ### 6-2. 환경변수 설정
 
-`.env` 파일에 API 키 입력:
+`.env` 파일을 준비한 뒤 API 키를 입력합니다:
+
+```bash
+just env
+```
 
 ```env
 NAVER_CLIENT_ID=발급받은_클라이언트_ID
@@ -528,9 +557,11 @@ GEMINI_API_KEY=발급받은_키
 
 ### 6-3. 전체 설치
 
-```powershell
+```bash
 just setup
 ```
+
+`just setup`은 `.env` 준비, PostgreSQL 컨테이너 시작, 백엔드/프론트엔드 의존성 설치, 마이그레이션, 초기 데이터 입력을 순서대로 실행합니다.
 
 ### 6-4. 수동 설치 (just 없이)
 
@@ -556,7 +587,7 @@ uv run python backend/manage.py seed_initial_data
 
 ### 6-5. 서버 실행
 
-```powershell
+```bash
 just dev
 # → 백엔드 http://localhost:8000
 # → 프론트엔드 http://localhost:5173
@@ -857,14 +888,14 @@ LLM 응답에서 case_name 추출
 
 ### 전체 재분석 (DB 초기화 후)
 
-```powershell
+```bash
 just db-reset-analyses    # Analysis + CaseGroup 삭제, 기사 pending 리셋
 just analyze              # 전체 재분석 (백그라운드 권장)
 ```
 
 ### 케이스 그룹 재매칭
 
-```powershell
+```bash
 just regroup              # 최근 분석만
 just regroup --all        # 전체 재매칭
 just regroup --dry-run    # 미리보기 (실제 변경 없음)
@@ -874,7 +905,7 @@ just regroup --dry-run    # 미리보기 (실제 변경 없음)
 
 피해 규모·피해자 수의 숫자 추출 로직이 개선된 경우 기존 데이터를 재계산합니다:
 
-```powershell
+```bash
 uv run python backend/manage.py reparse_numeric_fields           # 전체 재파싱
 uv run python backend/manage.py reparse_numeric_fields --null-only  # None인 것만
 ```
@@ -902,15 +933,15 @@ GET /api/analyses/export_pdf/?period=monthly  # 월간 (이번 달)
 
 | 증상 | 원인 | 해결 |
 |------|------|------|
-| `just` 명령어 인식 안 됨 | just 미설치 | `winget install Casey.Just` 후 터미널 재시작 |
+| `just` 명령어 인식 안 됨 | just 미설치 | macOS: `brew install just` / 기타 OS: just 설치 문서 확인 |
 | PostgreSQL 연결 실패 | Docker 미실행 | Docker Desktop 실행 → `just pg-start` |
 | 서버 시작 오류 | 의존성/마이그레이션 문제 | `just install` → `just migrate` |
 | 크롤링 0건 수집 | 네이버 API 키 오류 | `.env` `NAVER_CLIENT_ID/SECRET` 확인 |
 | AI 분석 실패 | Gemini API 키 오류 | `.env` `GEMINI_API_KEY` 확인 |
 | **오렌지 배너 "Gemini 일일 요청 한도 초과"** | Gemini 무료 티어 일일 한도 소진 | 다음날 오전 9시(KST) 이후 자동 재개. 즉시 해제하려면 `backend/.cache/` 폴더 삭제 후 서버 재시작 |
 | **오렌지 배너 "Gemini 분당 요청 한도 초과"** | API 분당 RPM 초과 | 5분 후 `just analyze` 재실행 시 자동 해제 |
-| Windows 한글 인코딩 오류 | cp949 인코딩 충돌 | `$env:PYTHONIOENCODING="utf-8"` 설정 후 재실행 |
-| 포트 충돌 | 5173 사용 중 | Vite가 자동으로 다음 포트 선택 — 터미널 확인 |
+| Windows 실행 오류 | `Justfile`이 macOS/Linux 셸 기준 | WSL2 또는 Git Bash에서 실행 |
+| 포트 충돌 | 8000 또는 5173 사용 중 | `just kill-port` 실행 후 `just dev` 재시도 |
 
 ---
 
